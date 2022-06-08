@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+import React from 'react'
+import personService from './services/persons'
 
 const Filter = (props) => {
 	return (
@@ -28,30 +29,27 @@ const PersonForm = (props) => {
 	)
 }
 
-const Persons = ({persons, showFiltered}) => {
+const Persons = ({persons, showFiltered, deletePerson}) => {
 	return (
 		<ul>
 		  {persons.filter(person => person.name.toLowerCase().includes(showFiltered.toLowerCase()))
-		  .map((person, id) => <li key={id}>{person.name} -- {person.number}</li>)}
+		  .map((person, id) =>
+      <li key={id}>{person.name} -- {person.number}<button onClick={() => deletePerson(person.id)}>delete</button></li>
+)}
 	  </ul>
 	)
 }
 
 const App = () => {
-  const [persons, setPersons] = useState([
-    { 
-		name: 'Arto Hellas',
-		number: 12200441,
-	}
-  ]) 
+  const [persons, setPersons] = useState([]) 
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [showFiltered, setShowFiltered] = useState('')
 
   useEffect(() => {
-	  axios
-	  	.get('http://localhost:3001/persons')
-		.then(response => setPersons(response.data))
+	  personService
+	  	.getAll()
+		  .then(initialPersons => setPersons(initialPersons))
 }, [])
 
   const handleNameChange = (event) => {
@@ -65,15 +63,29 @@ const App = () => {
   }
   const addContact = (event) => {
 	event.preventDefault()
-	if (persons.filter(person => person.name === newName).length){
-		alert(`${newName} already exists in the list`)
-		setNewName('')
-		setNewNumber('')
-		return
+  const toUpdate = persons.find(person => person.name === newName)
+	if (toUpdate){
+		personService
+      .update(toUpdate.id, {...toUpdate, number: newNumber})
+      .then(returnedPerson => {setPersons(persons.map(p => p.id !== toUpdate.id ? p : returnedPerson))})
 	}
-	  setPersons(persons.concat({name: newName, number: newNumber}))
+  else
+  {
+    setPersons(persons.concat({name: newName, number: newNumber}))
+    personService
+    .create({name: newName, number: newNumber})
+      .then(returnedPerson => setPersons(persons.concat(returnedPerson)))
+  }
 	  setNewName('')
 	  setNewNumber('')
+  }
+
+  const deleteContact = id => {
+    personService.remove(id)
+    .then(
+      personService.getAll()
+      .then(pers => setPersons(pers))
+    )
   }
 
   return (
@@ -84,7 +96,7 @@ const App = () => {
 		<PersonForm onSubmit={addContact} newName={newName} handleNameChange={handleNameChange}
 			newNumber={newNumber} handleNumberChange={handleNumberChange}/>
 		<h2>Numbers</h2>
-		<Persons persons={persons} showFiltered={showFiltered} />
+		<Persons persons={persons} showFiltered={showFiltered} deletePerson={deleteContact}/>
     </div>
   )
 }
