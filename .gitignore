@@ -2,3 +2,5 @@ phonebook/node_modules
 notes/node_modules
 notes/yarn.lock
 phonebook/yarn.lock
+phonebook-backend/node_modules
+restapp/backend/node_modules

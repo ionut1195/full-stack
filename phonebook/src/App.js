@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import React from 'react'
 import personService from './services/persons'
+import './index.css'
 
 const Filter = (props) => {
 	return (
@@ -34,7 +35,7 @@ const Persons = ({persons, showFiltered, deletePerson}) => {
 		<ul>
 		  {persons.filter(person => person.name.toLowerCase().includes(showFiltered.toLowerCase()))
 		  .map((person, id) =>
-      <li key={id}>{person.name} -- {person.number}<button onClick={() => deletePerson(person.id)}>delete</button></li>
+      <li className='person' key={id}>{person.name} -- {person.number}<button onClick={() => deletePerson(person.id)}>delete</button></li>
 )}
 	  </ul>
 	)
@@ -65,10 +66,11 @@ const App = () => {
 	event.preventDefault()
   const toUpdate = persons.find(person => person.name === newName)
 	if (toUpdate){
-		personService
-      .update(toUpdate.id, {...toUpdate, number: newNumber})
-      .then(returnedPerson => {setPersons(persons.map(p => p.id !== toUpdate.id ? p : returnedPerson))})
-	}
+    if (window.confirm(`Update contact information of ${toUpdate.name}?`)){
+      personService
+        .update(toUpdate.id, {...toUpdate, number: newNumber})
+        .then(returnedPerson => {setPersons(persons.map(p => p.id !== toUpdate.id ? p : returnedPerson))})
+    }}
   else
   {
     setPersons(persons.concat({name: newName, number: newNumber}))

@@ -1,0 +1,17 @@
+GET http://localhost:3001/api/contacts/
+
+###
+
+POST http://localhost:3001/api/contacts/ HTTP/1.1
+content-type: application/json
+
+{
+    "name": "newname",
+    "number": 213213123,
+    "id": 222
+}
+
+###
+
+DELETE http://localhost:3001/api/contacts/2
+
